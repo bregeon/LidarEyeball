@@ -305,7 +305,7 @@ if __name__ == '__main__':
     DATA_DIR='/home/bregeon/CTA/Lidar/alldata'
 #    r=pLidarRun(os.path.join(DATA_DIR,'run_065160_Lidar_001.root.txt'), nBins=100)
 
-    ROOT_DATA_DIR='/home/bregeon/Hess/lyon/bregeon/root_files/2011-09-23'
+    ROOT_DATA_DIR='/home/bregeon/Hess/data/run067217/'
     r=pLidarRun(os.path.join(ROOT_DATA_DIR,'run_067217_Lidar_001.root'), nBins=100)
     
     #r.simplePlot()
