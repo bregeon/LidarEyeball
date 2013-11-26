@@ -24,9 +24,11 @@ class pSashInterface(object):
     ## @param filename
     #  a HESS ROOT file name with Lidar data in a Sash:DataSet
     def __init__(self, filename):
+        self.Directory=directory
         self.FileName=filename
         self.RunNumber=None
         self.DateTime=None
+        self.RunHeader=None        
         # Start processing
         self.__loadLibs()
 
@@ -55,9 +57,9 @@ class pSashInterface(object):
     #
     ## @param self
     #  the object instance
-    def readFile(self):
-        logger.info("Opening %s"%self.FileName)
-        self.RootFile=ROOT.TFile(self.FileName)
+    def readLidarFile(self):
+        logger.info("Opening %s"%self.FilePath)
+        self.RootFile=ROOT.TFile(self.FilePath)
         self.LidarDataSet=self.RootFile.Get("Lidar") # Sash DataSet
         logger.info('Found %s entries'%self.LidarDataSet.GetEntries())
         self.LidarDataSet.GetEntry(0) # not sure it's needed...
@@ -65,8 +67,9 @@ class pSashInterface(object):
         # Need to convert to datetime
         utc=self.LidarDataSet.GetTimeStamp(0).GetUTC()
         self.DateTime=utc
-        print '%s %02d:%02d:%02d'%(utc.GetDate(), utc.GetHour(),\
+        self.DateTimeString='%s %02d:%02d:%02d'%(utc.GetDate(), utc.GetHour(),\
                      utc.GetMinute(), utc.GetSecond())
+        logger.info("Run DateTime: %s"%self.DateTimeString)
         # Get Lidar tree and get branched to numpy arrays
         self.LidarTree=self.LidarDataSet.GetTree()
         green=self.LidarTree.LidarEvent.GetSignal355()
@@ -88,14 +91,46 @@ class pSashInterface(object):
     def getData(self):
         return (self.RawAltitude, self.RawWL1, self.RawWL2)
 
+    def getRunHeader(self):
+        if self.RunHeader is None:
+            dList=ps.LidarDataSet.GetListOfRelatedSets()
+            for d in dList:
+                if d.GetName()=='run':
+                    run=d
+            runtree=run.GetTree()
+            runtree.GetEntry(0)        
+            self.RunHeader=runtree.RunHeader        
+        return self.RunHeader
+    
+    def getRunNum(self):
+        if self.RunNumber is None:
+            self.RunNumber=self.getRunHeader().GetRunNum()
+        return self.RunNumber
+    
 if __name__ == '__main__':
     # Do something
-#    filename="/sps/hess/users/lpta/bregeon/root_files/2011-09-23/run_067217_Lidar_001.root"
-    filename="/home/bregeon/Hess/lyon/bregeon/root_files/2011-09-23/run_067217_Lidar_001.root"
+    import os
+    ROOT_DATA_DIR='/home/bregeon/Hess/data/run067217/'
+    filename=os.path.join(ROOT_DATA_DIR,'run_067217_Lidar_001.root')
     ps=pSashInterface(filename)
     ps.readFile()
     print ps.getData()
     
+    # Various tests
+    ps.getRunHeader()
+    print "Run Type: ",ps.RunHeader.GetRunType()
+    print "Tels in Run: ", ps.RunHeader.GetNTelsInRun()
+    print "Tels in Trigger: ",ps.RunHeader.GetMinTelInTrigger()
+    print "Trigger pattern: ", ps.RunHeader.GetTriggerPattern()
 
-#a=ROOT.Atmosphere.LidarAnalysis()
-
+    print "Target: ", ps.RunHeader.GetTarget()
+    print "Target Postion Beta: %.02f"%ps.RunHeader.GetTargetPosition().GetBeta().GetDegrees()
+    print "Target Postion Lambda: %.02f"%ps.RunHeader.GetTargetPosition().GetLambda().GetDegrees()
+    print "Target Postion Phi: %.02f"%ps.RunHeader.GetTargetPosition().GetPhi().GetDegrees()
+    print "Target Postion Theta: %.02f"%ps.RunHeader.GetTargetPosition().GetTheta().GetDegrees()
+    
+    # in principe HESSArray gives access to everything else
+    # run is a Sash::DataSet
+    #array=run.GetHESSArray()
+    #array.GetRADecJ2000System()
+    
