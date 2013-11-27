@@ -24,7 +24,6 @@ class pSashInterface(object):
     ## @param filename
     #  a HESS ROOT file name with Lidar data in a Sash:DataSet
     def __init__(self, filename):
-        self.Directory=directory
         self.FileName=filename
         self.RunNumber=None
         self.DateTime=None
@@ -58,8 +57,8 @@ class pSashInterface(object):
     ## @param self
     #  the object instance
     def readLidarFile(self):
-        logger.info("Opening %s"%self.FilePath)
-        self.RootFile=ROOT.TFile(self.FilePath)
+        logger.info("Opening %s"%self.FileName)
+        self.RootFile=ROOT.TFile(self.FileName)
         self.LidarDataSet=self.RootFile.Get("Lidar") # Sash DataSet
         logger.info('Found %s entries'%self.LidarDataSet.GetEntries())
         self.LidarDataSet.GetEntry(0) # not sure it's needed...
@@ -110,10 +109,10 @@ class pSashInterface(object):
 if __name__ == '__main__':
     # Do something
     import os
-    ROOT_DATA_DIR='/home/bregeon/Hess/data/run067217/'
-    filename=os.path.join(ROOT_DATA_DIR,'run_067217_Lidar_001.root')
+    ROOT_DATA_DIR='/home/bregeon/Hess/data/run067219/'
+    filename=os.path.join(ROOT_DATA_DIR,'run_067219_Lidar_001.root')
     ps=pSashInterface(filename)
-    ps.readFile()
+    ps.readLidarFile()
     print ps.getData()
     
     # Various tests

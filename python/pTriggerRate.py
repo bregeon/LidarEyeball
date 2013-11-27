@@ -43,14 +43,14 @@ class pTriggerRate(object):
          self.hTrgRate.GetXaxis().SetTitle("Seconds from run start")
          self.hTrgRate.GetYaxis().SetTitle("Raw Trigger rate (Hz)")
          tStart=self.EventsChain.GetMinimum("fTime")
-         print tStart
          if tStart < 10:
              tStart=self.EventsChain.GetMaximum("fTime")-1800
          self.EventsChain.Project(hName,"fTime-%f"%tStart)
          fit=self.hTrgRate.Fit("pol0","QS")
          fitparams=fit.Get().GetParams()
          self.AverageTriggerRate=fitparams[0]
-         print "Average Trigger Rate: %.02f"%self.AverageTriggerRate
+         logger.info("Run %s Average Trigger Rate: %.02f"%\
+                     (self.RunNumber,self.AverageTriggerRate))
     
     def plotRawTriggerRate(self, gPad=None):
          if gPad is None:
@@ -65,6 +65,12 @@ class pTriggerRate(object):
 if __name__ == '__main__':
     trg=pTriggerRate(67217)
     trg.fillRawTriggerRate()
+    trg2=pTriggerRate(67219)
+    trg2.fillRawTriggerRate()
     c=ROOT.TCanvas("Trigger", "Trigger", 30,50,850,650)
+    c.Divide(1,2)
+    c.cd(1)
     trg.plotRawTriggerRate(ROOT.gPad)
+    c.cd(2)
+    trg2.plotRawTriggerRate(ROOT.gPad)
     
