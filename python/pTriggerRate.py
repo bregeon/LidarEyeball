@@ -6,11 +6,11 @@
 import os
 import ROOT
 
-from datetime import datetime
+from datetime       import datetime
 
-from __logging__        import *
+from __logging__    import *
+from pDataInterface import *
 
-DATA_DIR="/home/bregeon/Hess/data/"
 
 ####################################
 ## @brief Class to calculate a simple Trigger rate
@@ -32,7 +32,7 @@ class pTriggerRate(object):
          # Data are in another ROOT File - fix readFile above
          #data=ROOT.Sash.DataSet("/home/bregeon/Hess/data/run067217/run_067217_Camera_001.root")
          self.EventsChain=ROOT.TChain("events_tree")
-         self.EventsChain.Add(os.path.join(DATA_DIR,"run%06d/run_%06d_Camera_*.root"%\
+         self.EventsChain.Add(os.path.join(HESS_DATA_DIR,"run%06d/run_%06d_Camera_*.root"%\
                                      (self.RunNumber, self.RunNumber)))
          
 
@@ -63,9 +63,9 @@ class pTriggerRate(object):
                                          
 
 if __name__ == '__main__':
-    trg=pTriggerRate(67217)
+    trg=pTriggerRate(67221)
     trg.fillRawTriggerRate()
-    trg2=pTriggerRate(67219)
+    trg2=pTriggerRate(67227)
     trg2.fillRawTriggerRate()
     c=ROOT.TCanvas("Trigger", "Trigger", 30,50,850,650)
     c.Divide(1,2)
@@ -73,4 +73,4 @@ if __name__ == '__main__':
     trg.plotRawTriggerRate(ROOT.gPad)
     c.cd(2)
     trg2.plotRawTriggerRate(ROOT.gPad)
-    
+    c.cd()

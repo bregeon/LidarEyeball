@@ -8,9 +8,10 @@
 import os
 import ROOT
 import numpy
-from datetime import datetime
+from datetime       import datetime
 
-from __logging__        import *
+from __logging__    import *
+from pDataInterface import *
 
 ####################################
 ## @brief Class to interface to Sash:DataSet
@@ -29,14 +30,14 @@ class pSashInterface(object):
         self.DateTime=None
         self.RunHeader=None        
         # Start processing
-        self.__loadLibs()
+        self.__loadLibs__()
 
     ####################################
     ## @brief Load dependencies as HESS ROOT libraries
     #
     ## @param self
     #  the object instance
-    def __loadLibs(self):     
+    def __loadLibs__(self):     
         # First check if HESSROOT is defined... no hope otherwise.
         if not os.environ.has_key('HESSROOT'):
             logger.error('$HESSROOT is not set, HESS software is needed for this code to run.')
@@ -109,8 +110,7 @@ class pSashInterface(object):
 if __name__ == '__main__':
     # Do something
     import os
-    ROOT_DATA_DIR='/home/bregeon/Hess/data/run067219/'
-    filename=os.path.join(ROOT_DATA_DIR,'run_067219_Lidar_001.root')
+    filename=os.path.join(HESS_DATA_DIR,'run067219/run_067219_Lidar_001.root')
     ps=pSashInterface(filename)
     ps.readLidarFile()
     print ps.getData()

@@ -7,9 +7,11 @@
 import os
 import numpy
 import math
-from datetime import datetime
+from datetime          import datetime
 
 from __logging__        import *
+from pDataInterface     import *
+
 
 ####################################
 ## @brief Class to manage a LIDAR run
@@ -76,7 +78,7 @@ class pLidarRun(object):
         # Need HESS software
         from pSashInterface import pSashInterface
         self.SashInterface=pSashInterface(self.FileName)
-        self.SashInterface.readFile()
+        self.SashInterface.readLidarFile()
         (self.RawAltitude, self.RawWL1, self.RawWL2)=self.SashInterface.getData()
         self.NPoints=len(self.RawAltitude)
         return 0
@@ -305,8 +307,7 @@ if __name__ == '__main__':
     DATA_DIR='/home/bregeon/CTA/Lidar/alldata'
 #    r=pLidarRun(os.path.join(DATA_DIR,'run_065160_Lidar_001.root.txt'), nBins=100)
 
-    ROOT_DATA_DIR='/home/bregeon/Hess/data/run067217/'
-    r=pLidarRun(os.path.join(ROOT_DATA_DIR,'run_067217_Lidar_001.root'), nBins=100)
+    r=pLidarRun(os.path.join(HESS_DATA_DIR,'run067217/run_067217_Lidar_001.root'), nBins=100)
     
     #r.simplePlot()
     #r.binLnPower(10)

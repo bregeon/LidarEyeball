@@ -4,8 +4,11 @@
 #  The analysis plotter class
 # 
 
+from pDataInterface import *
 import pLidarRun
+
 import ROOT
+
 
 ####################################
 ## @brief Class to plot LIDAR run data
@@ -275,11 +278,10 @@ class pLidarRunPlotter(object):
 
 
 if __name__ == '__main__':
-    import os
-    ROOT_DATA_DIR='/home/bregeon/Hess/data/run067217/'
+    import os    
 #    run=pLidarRun.pLidarRun('data/run_065160_Lidar_001.root.txt',process=True, nBins=100)
 #    run=pLidarRun.pLidarRun('alldata/run_069377_Lidar_001.root.txt',process=True, nBins=100)
-    run=pLidarRun.pLidarRun(os.path.join(ROOT_DATA_DIR,'run_067217_Lidar_001.root'),process=True, nBins=100)
+    run=pLidarRun.pLidarRun(os.path.join(HESS_DATA_DIR,'run067217/run_067217_Lidar_001.root'),process=True, nBins=100)
     plotter=pLidarRunPlotter(run)
     #plotter.plotAll()
     
@@ -295,3 +297,5 @@ if __name__ == '__main__':
     plotter.fillKlettGraphs()
     c.cd(3)
     plotter.plotBothAlpha(ROOT.gPad)
+    c.Update()
+    
