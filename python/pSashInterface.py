@@ -27,7 +27,9 @@ class pSashInterface(object):
     def __init__(self, run, filename=None):
         ## A HESS data run number
         self.RunNumber=run
-        ## Data interface to get data for a given run
+        ## pDataInterface to get data for current run
+        self.DataInterface=None
+        ## Dictionnary to access to data files for current run
         self.DataRunDict={}
         if filename is None:            
             self.DataInterface=pDataInterface(runsList=[run])
@@ -104,22 +106,38 @@ class pSashInterface(object):
         green=self.LidarTree.LidarEvent.GetSignal355()
         blue=self.LidarTree.LidarEvent.GetSignal532()
         height=self.LidarTree.LidarEvent.GetRange()
-        self.NPoints=height.fN
 
-        self.RawAltitude=numpy.ndarray((self.NPoints),'d')
-        self.RawWL1=numpy.ndarray((self.NPoints),'d')
-        self.RawWL2=numpy.ndarray((self.NPoints),'d')
+        ## Number of points of the Lidar data acquisition
+        self.LidarNPoints=height.fN
+        ## Lidar data Altitude array in km
+        self.LidarRawAltitude=numpy.ndarray((self.LidarNPoints),'d')
+        ## Lidar data raw signal array for green light
+        self.LidarRawWL1=numpy.ndarray((self.LidarNPoints),'d')
+        ## Lidar data raw signal array for blue light
+        self.LidarRawWL2=numpy.ndarray((self.LidarNPoints),'d')
 
         for i in range(self.NPoints):
-            self.RawAltitude[i]=height[i]
-            self.RawWL1[i]=green[i]
-            self.RawWL2[i]=blue[i]
+            self.LidarRawAltitude[i]=height[i]
+            self.LidarRawWL1[i]=green[i]
+            self.LidarRawWL2[i]=blue[i]
             
         logger.info('%s points read'%self.NPoints)
         return 0
 
-    def getData(self):
-        return (self.RawAltitude, self.RawWL1, self.RawWL2)
+    ####################################
+    ## @brief Returns Lidar Data
+    #
+    ## @param self
+    #  the object instance
+
+    def getLidarData(self):
+        return (self.LidarRawAltitude, self.LidarRawWL1, self.LidarRawWL2)
+
+    ####################################
+    ## @brief Return the run header through the related data set
+    #
+    ## @param self
+    #  the object instance
 
     def getRunHeader(self):
         if self.RunHeader is None:
@@ -132,10 +150,22 @@ class pSashInterface(object):
             self.RunHeader=runtree.RunHeader        
         return self.RunHeader
     
+    ####################################
+    ## @brief Returns the run number from the run header
+    #
+    ## @param self
+    #  the object instance
+
     def getRunNum(self):
         if self.RunNumber is None:
             self.RunNumber=self.getRunHeader().GetRunNum()
         return self.RunNumber
+
+    ####################################
+    ## @brief Returns Lidar Data
+    #
+    ## @param self
+    #  the object instance
 
     def getSummaryString(self):
         summary = str(self.getRunNum())
@@ -152,8 +182,8 @@ if __name__ == '__main__':
     import sys
     ps2=pSashInterface(67219)
     ps2.readLidarFile()
-    print ps2.getData()
-    ps2.createSashDataSet()
+    print ps2.getLidarData()
+    ds2=ps2.createSashDataSet()
     
     
 #    # Test read via filename
@@ -161,7 +191,7 @@ if __name__ == '__main__':
 #    filename=os.path.join(HESS_DATA_DIR,'run067219/run_067219_Lidar_001.root')
 #    ps=pSashInterface(67219, filename)
 #    ps.readLidarFile()
-#    print ps.getData()
+#    print ps.getLidarData()
 #        
 #    # Header tests
 #    ps.getRunHeader()
