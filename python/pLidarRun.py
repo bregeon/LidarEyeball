@@ -33,6 +33,12 @@ class pLidarRun(object):
         if process:
             self.process(self.NBins)
 
+    ####################################
+    ## @brief Wrapper to choose which method to use to read the input file
+    #  from either an ascii or a ROOT file, based on the file name extension
+    #
+    ## @param self
+    #  the object instance
     def readFile(self):
         # choose which method to call according to file name extension
         ext=os.path.basename(self.FileName).split('.')[-1]
@@ -45,6 +51,11 @@ class pLidarRun(object):
             logger.error('Can read only .txt or .root files. Aborting')
             sys.exit(2)
              
+    ####################################
+    ## @brief Read Lidar data from an ascii file
+    #
+    ## @param self
+    #  the object instance
     def readTxtFile(self):
         cont=open(self.FileName,'r').readlines()
         self.RunNumber=int(self.FileName.split('_')[1])
@@ -73,13 +84,18 @@ class pLidarRun(object):
         #self.RawWL1=self.RawData[:,1]
         #self.RawWL2=self.RawData[:,2]
 
+    ####################################
+    ## @brief Read Lidar data from HESS ROOT Lidar data file
+    #
+    ## @param self
+    #  the object instance
     def readROOTFile(self):
         logger.info('Reading HESS ROOT file')
         # Need HESS software
         from pSashInterface import pSashInterface
-        self.SashInterface=pSashInterface(self.FileName)
+        self.SashInterface=pSashInterface(-1, filename=self.FileName)
         self.SashInterface.readLidarFile()
-        (self.RawAltitude, self.RawWL1, self.RawWL2)=self.SashInterface.getData()
+        (self.RawAltitude, self.RawWL1, self.RawWL2)=self.SashInterface.getLidarData()
         self.NPoints=len(self.RawAltitude)
         return 0
         
