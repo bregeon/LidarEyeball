@@ -35,7 +35,11 @@ class pTriggerRate(object):
         self.AverageTriggerRate=-1
         ## Canvas to plot the histogram of time stamps
         self.TrigCan=None
-        
+        ## Interface to get the run data files
+        self.DataInterface=pDataInterface(runsList=[runNumber])
+        ## Dictionnary with run files information
+        self.DataRunDict=self.DataInterface.AllRunsDict[runNumber]
+
         self.openCamFile()
     
     ####################################
@@ -44,11 +48,11 @@ class pTriggerRate(object):
     ## @param self
     #  the object instance
     def openCamFile(self):
-         # Data are in another ROOT File - fix readFile above
-         #data=ROOT.Sash.DataSet("/home/bregeon/Hess/data/run067217/run_067217_Camera_001.root")
-         self.EventsChain=ROOT.TChain("events_tree")
-         self.EventsChain.Add(os.path.join(HESS_DATA_DIR,"run%06d/run_%06d_Camera_*.root"%\
-                                     (self.RunNumber, self.RunNumber)))
+        # Use Sash::DataSet for a run
+        # data=ROOT.Sash.DataSet("/home/bregeon/Hess/data/run067217/run_067217_Camera_001.root")
+        self.EventsChain=ROOT.TChain("events_tree")
+        for camFile in self.DataRunDict['CameraFiles']:
+            self.EventsChain.Add(camFile)
          
 
     ####################################
@@ -58,20 +62,21 @@ class pTriggerRate(object):
     ## @param self
     #  the object instance
     def fillRawTriggerRate(self):
-         hName="hTrgRate_%d"%self.RunNumber
-         hTitle="Trigger Rate for Tel_%d"%self.RunNumber
-         self.hTrgRate=ROOT.TH1F(hName, hTitle, 2000,-100,1900)
-         self.hTrgRate.GetXaxis().SetTitle("Seconds from run start")
-         self.hTrgRate.GetYaxis().SetTitle("Raw Trigger rate (Hz)")         
-         tStart=self.EventsChain.GetMinimum("fTime")         
-         if tStart < 10:
-             tStart=self.EventsChain.GetMaximum("fTime")-1800
-         self.EventsChain.Project(hName,"fTime-%f"%tStart)
-         fit=self.hTrgRate.Fit("pol0","QS")
-         fitparams=fit.Get().GetParams()
-         self.hTrgRate.SetMaximum(250)
-         self.AverageTriggerRate=fitparams[0]
-         logger.info("Run %s Average Trigger Rate: %.02f"%\
+        logger.info('Fill raw trigger rate histogram for run %06d'%self.RunNumber)
+        hName="hTrgRate_%d"%self.RunNumber
+        hTitle="Trigger Rate for run %d"%self.RunNumber
+        self.hTrgRate=ROOT.TH1F(hName, hTitle, 2000,-100,1900)
+        self.hTrgRate.GetXaxis().SetTitle("Seconds from run start")
+        self.hTrgRate.GetYaxis().SetTitle("Raw Trigger rate (Hz)")         
+        tStart=self.EventsChain.GetMinimum("fTime")         
+        if tStart < 10:
+            tStart=self.EventsChain.GetMaximum("fTime")-1800
+        self.EventsChain.Project(hName,"fTime-%f"%tStart)
+        fit=self.hTrgRate.Fit("pol0","QS")
+        fitparams=fit.Get().GetParams()
+        self.hTrgRate.SetMaximum(250)
+        self.AverageTriggerRate=fitparams[0]
+        logger.info("Run %s Average Trigger Rate: %.02f"%\
                      (self.RunNumber,self.AverageTriggerRate))
     
     ####################################
@@ -83,13 +88,13 @@ class pTriggerRate(object):
     #  a TCanvas TPad to plot the histogram in
     #
     def plotRawTriggerRate(self, gPad=None):
-         if gPad is None:
-             self.TrigCan=ROOT.TCanvas('TrigerCan_%s'%self.RunNumber,\
-                                         'Raw Trigger Rate for run %s'%self.RunNumber,\
-                                         30,50,850,650)
-         else:
-             gPad.cd()
-         self.hTrgRate.Draw()
+        if gPad is None:
+            self.TrigCan=ROOT.TCanvas('TrigerCan_%s'%self.RunNumber,\
+                                        'Raw Trigger Rate for run %s'%self.RunNumber,\
+                                        30,50,850,650)
+        else:
+            gPad.cd()
+        self.hTrgRate.Draw()
                                          
 
 if __name__ == '__main__':
