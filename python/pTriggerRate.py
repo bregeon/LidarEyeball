@@ -48,11 +48,22 @@ class pTriggerRate(object):
     ## @param self
     #  the object instance
     def openCamFile(self):
-        # Use Sash::DataSet for a run
-        # data=ROOT.Sash.DataSet("/home/bregeon/Hess/data/run067217/run_067217_Camera_001.root")
+        ## TChain of events_tree
         self.EventsChain=ROOT.TChain("events_tree")
         for camFile in self.DataRunDict['CameraFiles']:
             self.EventsChain.Add(camFile)
+
+        ## Sash::DataSet of events
+        self.DataSet=ROOT.Sash.DataSet("events","events")
+        for camFile in self.DataRunDict['CameraFiles']:
+            self.DataSet.AddFile(camFile)
+
+        self.nEvents=self.DataSet.GetEntries()
+        logger.debug("NEvent %s"%self.nEvents)
+        self.tStart=self.DataSet.GetTimeStamp(0).GetTimeDouble()
+        logger.debug("tStart %s"%self.tStart)
+        self.tStop=self.DataSet.GetTimeStamp(int(self.nEvents-1)).GetTimeDouble()
+        logger.debug("tStop %s"%self.tStop)
          
 
     ####################################
@@ -65,13 +76,10 @@ class pTriggerRate(object):
         logger.info('Fill raw trigger rate histogram for run %06d'%self.RunNumber)
         hName="hTrgRate_%d"%self.RunNumber
         hTitle="Trigger Rate for run %d"%self.RunNumber
-        self.hTrgRate=ROOT.TH1F(hName, hTitle, 2000,-100,1900)
+        self.hTrgRate=ROOT.TH1F(hName, hTitle, 2000,-2000,1900)
         self.hTrgRate.GetXaxis().SetTitle("Seconds from run start")
         self.hTrgRate.GetYaxis().SetTitle("Raw Trigger rate (Hz)")         
-        tStart=self.EventsChain.GetMinimum("fTime")         
-        if tStart < 10:
-            tStart=self.EventsChain.GetMaximum("fTime")-1800
-        self.EventsChain.Project(hName,"fTime-%f"%tStart)
+        self.EventsChain.Project(hName,"fTime+1e-9*fNanosec-%f"%self.tStart)
         fit=self.hTrgRate.Fit("pol0","QS")
         fitparams=fit.Get().GetParams()
         self.hTrgRate.SetMaximum(250)
