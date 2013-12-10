@@ -116,12 +116,12 @@ class pSashInterface(object):
         ## Lidar data raw signal array for blue light
         self.LidarRawWL2=numpy.ndarray((self.LidarNPoints),'d')
 
-        for i in range(self.NPoints):
+        for i in range(self.LidarNPoints):
             self.LidarRawAltitude[i]=height[i]
             self.LidarRawWL1[i]=green[i]
             self.LidarRawWL2[i]=blue[i]
             
-        logger.info('%s points read'%self.NPoints)
+        logger.info('%s points read'%self.LidarNPoints)
         return 0
 
     ####################################
