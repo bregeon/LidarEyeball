@@ -83,7 +83,6 @@ class pDataInterface(object):
         self.AllRunsDict[run]['TxtFiles']=glob.glob(os.path.join(self.AllRunsDict[run]['DataDir'],'*.txt'))
         self.AllRunsDict[run]['FitsFiles']=glob.glob(os.path.join(self.AllRunsDict[run]['DataDir'],'*.fits'))
         for key in self.AllRunsDict[run].keys():
-            print self.AllRunsDict[run]['LidarFiles']
             if key not in ['DataDir']:
                 self.AllRunsDict[run][key].sort()
             if len(self.AllRunsDict[run]['LidarFiles'])>0 and\
@@ -96,7 +95,7 @@ class pDataInterface(object):
 if __name__ == '__main__':
     # Unit Test 
     di=pDataInterface(runsList=[67227,67229, 34])
-    print di.AllRunsDict.keys()
-    print di.RunsList
-    print di.FailedRunsList
+    print(di.AllRunsDict.keys())
+    print(di.RunsList)
+    print(di.FailedRunsList)
     
