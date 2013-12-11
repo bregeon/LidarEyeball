@@ -1,7 +1,6 @@
 ## @file
 #  An interface to get data from a directory
-#  or a run number
-#  To be seen how general that will be
+#  or a run number, locally.
 
 import os
 import glob
