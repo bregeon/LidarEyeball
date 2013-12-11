@@ -19,7 +19,7 @@ class pLidarRunPlotter(object):
     #
     ## @param self
     #  the object instance
-    ## @param pLidarRun 
+    ## @param lidarRun 
     #  a pLidarRun object
     def __init__(self, lidarRun=None):
         print 'New plotter for run %s'%lidarRun.RunNumber
