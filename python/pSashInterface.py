@@ -31,6 +31,7 @@ class pSashInterface(object):
         self.DataInterface=None
         ## Dictionnary to access to data files for current run
         self.DataRunDict={}
+        # By-pass for convenience
         if filename is None:            
             self.DataInterface=pDataInterface(runsList=[run])
             self.DataRunDict=self.DataInterface.AllRunsDict[run]
@@ -39,9 +40,12 @@ class pSashInterface(object):
         ## Date and time of the run
         self.DateTime=None
         ## Pointer to the data run header that contains the target information
-        self.RunHeader=None        
+        self.RunHeader=None
+        ## Lidar Sash::DataSet
+        self.LidarDataSet=None
         # Start processing
         self.__loadLibs__()
+        
 
     ####################################
     ## @brief Load dependencies as HESS ROOT libraries
@@ -66,35 +70,84 @@ class pSashInterface(object):
         return 0
 
     ####################################
-    ## @brief Open ROOT File and get data into numpy format
+    ## @brief Open ROOT File and get all Sash::DataSet and HESSArray
+    #
+    #  Sash::DataSets of interests:
+    #  * from camera files: run, events
+    #  * from Lidar file: Lidar
     #
     ## @param self
     #  the object instance
-    def createSashDataSet(self):
-        self.DataSet=ROOT.Sash.DataSet("run","run")
-        self.DataSet.AddFile(self.DataRunDict['LidarFiles'][0])
+    ## @param dtypes
+    #  DataSet types to be looked for
+    #
+    def createSashDataSet(self, dtypes=['run','events','Lidar']):        
+        if 'run'in dtypes:
+            self.createRunDataSets()
+        if 'events'in dtypes:
+            self.createEventsDataSets()            
+        if 'Lidar' in dtypes:
+            self.createLidarDataSet()
+
+    ####################################
+    ## @brief Create a run Sash::DataSet
+    #
+    ## @param self
+    #  the object instance
+    def createRunDataSets(self):
+        self.RunDataSet=ROOT.SashFile.EventDataSet("run","run")
         for camFile in self.DataRunDict['CameraFiles']:
-            self.DataSet.AddFile(camFile)
+            self.RunDataSet.AddFile(camFile)
+        try:
+            self.RunDataSet.GetEntry(0)
+            logger.info('Successfully created the run DataSet')
+        except:
+            logger.error('Failed to create the run DataSet')
+            sys.exit(1)                                                               
+                    
+    ####################################
+    ## @brief Create an events Sash::DataSet
+    #
+    ## @param self
+    #  the object instance
+    def createEventsDataSets(self):
+        self.EventsDataSet=ROOT.SashFile.EventDataSet("events","events")
+        for camFile in self.DataRunDict['CameraFiles']:
+            self.EventsDataSet.AddFile(camFile)
+        try:
+            logger.info('Events DataSet ready with %d entries'%self.EventsDataSet.GetEntries())            
+        except:
+            logger.error('Failed to create the Events DataSet')
+            sys.exit(1)                                                               
+        self.HESSArray=self.EventsDataSet.GetHESSArray()
         
-        return self.DataSet
-        
+
+    ####################################
+    ## @brief Create a Lidar Sash::DataSet
+    #
+    ## @param self
+    #  the object instance
+    def createLidarDataSet(self):
+        lidarFile=self.DataRunDict['LidarFiles'][0]                                   
+        logger.info("Opening %s"%lidarFile)                                           
+        self.LidarRootFile=ROOT.TFile(lidarFile)                                           
+        self.LidarDataSet=self.LidarRootFile.Get("Lidar") # Sash DataSet                   
+        try:                                                                          
+            logger.info('Lidar DataSet ready with %d entries'%self.LidarDataSet.GetEntries())            
+        except:                                                                       
+            logger.error('Lidar tree does not exist or has no entry... aborting.')    
+            sys.exit(1)                                                               
+        self.LidarDataSet.GetEntry(0) # not sure it's needed...                       
+        return self.LidarDataSet
+
     ####################################
     ## @brief Open ROOT File and get data into numpy format
     #
     ## @param self
     #  the object instance
     def readLidarFile(self):
-        lidarFile=self.DataRunDict['LidarFiles'][0]
-        logger.info("Opening %s"%lidarFile)
-        self.RootFile=ROOT.TFile(lidarFile)
-        self.LidarDataSet=self.RootFile.Get("Lidar") # Sash DataSet
-        try:
-            logger.info('Found %s entries'%self.LidarDataSet.GetEntries())
-        except:
-            logger.error('Lidar tree does not exist or has no entry... aborting.')
-            sys.exit(2)
-            
-        self.LidarDataSet.GetEntry(0) # not sure it's needed...        
+        if self.LidarDataSet is None:
+            self.createSashDataSet(dtypes=['Lidar'])
         # Need to convert to datetime
         utc=self.LidarDataSet.GetTimeStamp(0).GetUTC()
         self.DateTime=utc
@@ -181,9 +234,9 @@ if __name__ == '__main__':
     # Test read via run number
     import sys
     ps2=pSashInterface(67219)
+    ps2.createSashDataSet()
     ps2.readLidarFile()
     print ps2.getLidarData()
-    ds2=ps2.createSashDataSet()
     
     
 #    # Test read via filename
