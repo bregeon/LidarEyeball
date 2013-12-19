@@ -43,6 +43,10 @@ class pSashInterface(object):
         self.RunHeader=None
         ## Lidar Sash::DataSet
         self.LidarDataSet=None
+        ## Event Sash::EventDataSet
+        self.EventsDataSet=None
+        ## Run Sash::EventDataSet
+        self.RunDataSet=None
         # Start processing
         self.__loadLibs__()
         
@@ -82,11 +86,11 @@ class pSashInterface(object):
     #  DataSet types to be looked for
     #
     def createSashDataSet(self, dtypes=['run','events','Lidar']):        
-        if 'run'in dtypes:
+        if 'run'in dtypes and self.RunDataSet is None:
             self.createRunDataSets()
-        if 'events'in dtypes:
+        if 'events'in dtypes and self.EventsDataSet is None:
             self.createEventsDataSets()            
-        if 'Lidar' in dtypes:
+        if 'Lidar' in dtypes and self.LidarDataSet is None:
             self.createLidarDataSet()
 
     ####################################
@@ -107,9 +111,10 @@ class pSashInterface(object):
                     
     ####################################
     ## @brief Create an events Sash::DataSet
-    #
+    #  and get here HESSArray and EventHeader as well
     ## @param self
     #  the object instance
+    #
     def createEventsDataSets(self):
         self.EventsDataSet=ROOT.SashFile.EventDataSet("events","events")
         for camFile in self.DataRunDict['CameraFiles']:
@@ -118,9 +123,11 @@ class pSashInterface(object):
             logger.info('Events DataSet ready with %d entries'%self.EventsDataSet.GetEntries())            
         except:
             logger.error('Failed to create the Events DataSet')
-            sys.exit(1)                                                               
+            sys.exit(1)
         self.HESSArray=self.EventsDataSet.GetHESSArray()
-        
+        self.EventHeader=self.HESSArray.Get(ROOT.Sash.EventHeader())
+        self.EventsDataSet.GetEntry(0)
+
 
     ####################################
     ## @brief Create a Lidar Sash::DataSet
@@ -138,7 +145,6 @@ class pSashInterface(object):
             logger.error('Lidar tree does not exist or has no entry... aborting.')    
             sys.exit(1)                                                               
         self.LidarDataSet.GetEntry(0) # not sure it's needed...                       
-        return self.LidarDataSet
 
     ####################################
     ## @brief Open ROOT File and get data into numpy format
@@ -230,6 +236,22 @@ class pSashInterface(object):
         self.SummaryString=summary
         return self.SummaryString
 
+
+    ####################################
+    ## @brief Loop over events
+    #
+    ## @param self
+    #  the object instance
+
+    def EventLoop(self):
+        self.createSashDataSet()
+        for i in range(10):
+            logger.info("Loading event %d"%i)
+            self.EventsDataSet.GetEntry(i)            
+            self.EventHeader.GetTelWData().Print()
+            
+        logger.info("Event loop done.")
+
 if __name__ == '__main__':
     # Test read via run number
     import sys
@@ -237,6 +259,8 @@ if __name__ == '__main__':
     ps2.createSashDataSet()
     ps2.readLidarFile()
     print ps2.getLidarData()
+
+    ps2.EventLoop()
     
     
 #    # Test read via filename
