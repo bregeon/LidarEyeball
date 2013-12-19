@@ -10,6 +10,7 @@ from datetime       import datetime
 
 from __logging__    import *
 from pDataInterface import *
+from pSashInterface import *
 
 
 ####################################
@@ -76,7 +77,7 @@ class pTriggerRate(object):
         logger.info('Fill raw trigger rate histogram for run %06d'%self.RunNumber)
         hName="hTrgRate_%d"%self.RunNumber
         hTitle="Trigger Rate for run %d"%self.RunNumber
-        self.hTrgRate=ROOT.TH1F(hName, hTitle, 2000,-2000,1900)
+        self.hTrgRate=ROOT.TH1F(hName, hTitle, 4000,-2000,1900)
         self.hTrgRate.GetXaxis().SetTitle("Seconds from run start")
         self.hTrgRate.GetYaxis().SetTitle("Raw Trigger rate (Hz)")         
         self.EventsChain.Project(hName,"fTime+1e-9*fNanosec-%f"%self.tStart)
@@ -87,6 +88,28 @@ class pTriggerRate(object):
         logger.info("Run %s Average Trigger Rate: %.02f"%\
                      (self.RunNumber,self.AverageTriggerRate))
     
+    ####################################
+    ## @brief Create a histogram of time stamps with 1 s bins
+    #  and fit it with a constant
+    #
+    ## @param self
+    #  the object instance
+    def averageCorrectedTriggerRate(self):
+        logger.info('Estimate the averaged corrected trigger rate for run %06d'%self.RunNumber)
+        # create raw trigger rate histogram if it does not exist
+        if self.hTrgRate is None:
+            self.fillRawTriggerRate()
+        
+        self.LidarSashInterface=pSashInterface(self.RunNumber)
+        self.LidarSashInterface.readLidarFile()
+        logger.info(self.LidarSashInterface.getSummaryString())
+        self.RunHeader=self.LidarSashInterface.getRunHeader()
+        theta=self.RunHeader.GetTargetPosition().GetTheta().GetDegrees()
+        cor=ROOT.TMath.Cos(theta*ROOT.TMath.DegToRad())
+        self.AverageCorrectedTriggerRate=self.AverageTriggerRate*cor
+        logger.info("Run %s Average Corrected Trigger Rate: %.02f"%\
+                     (self.RunNumber,self.AverageCorrectedTriggerRate))
+
     ####################################
     ## @brief Plot histogram of the trigger rate in a TPad
     #
@@ -110,3 +133,5 @@ if __name__ == '__main__':
     trg.fillRawTriggerRate()
     c=ROOT.TCanvas("Trigger", "Trigger", 30,50,850,650)
     trg.plotRawTriggerRate(ROOT.gPad)
+    trg.averageCorrectedTriggerRate()
+    
