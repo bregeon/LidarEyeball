@@ -162,8 +162,8 @@ class pSashInterface(object):
         logger.info("Run DateTime: %s"%self.DateTimeString)
         # Get Lidar tree and get branched to numpy arrays
         self.LidarTree=self.LidarDataSet.GetTree()
-        green=self.LidarTree.LidarEvent.GetSignal355()
-        blue=self.LidarTree.LidarEvent.GetSignal532()
+        green=self.LidarTree.LidarEvent.GetSignal532()
+        blue=self.LidarTree.LidarEvent.GetSignal355()
         height=self.LidarTree.LidarEvent.GetRange()
 
         ## Number of points of the Lidar data acquisition
