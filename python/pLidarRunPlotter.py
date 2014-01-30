@@ -188,6 +188,24 @@ class pLidarRunPlotter(object):
         self.MainCanvas.cd(8)
         self.gLnPowerWL2.Draw('AP')
 
+    def getRaw(self, wl=1):
+        if wl==1:
+            return self.gRawWL1   
+        elif wl==2:
+            return self.gRawWL2
+        else:
+            print 'unknown graph gRawWL%s'%wl
+            return None
+
+
+    def getPower(self, wl=1):
+        if wl==1:
+            return self.gPowerWL1   
+        elif wl==2:
+            return self.gPowerWL2
+        else:
+            print 'unknown graph gPowerWL%s'%wl
+            return None
 
     def getAlpha(self, wl=1):
         if wl==1:
@@ -249,7 +267,30 @@ class pLidarRunPlotter(object):
         self.gBinnedAlphaPW1.Draw('AP')
         self.gBinnedAlphaPW2.Draw('PS')
         self.gBinnedAlphaPW2.SetMarkerColor(2)
+
+    def plotOneRaw(self, wl=1, gPad=None, opt='', color=1):
+        if gPad is None:
+            self.RawCanvas=ROOT.TCanvas('RawCan_%s'%self.LidarRun.RunNumber,\
+                                         'Raw signal for run %s'%self.LidarRun.RunNumber,\
+                                         30,50,850,650)
+        else:
+            gPad.cd()
+        raw=self.getRaw(wl)
+        raw.Draw(opt)
+        raw.SetMarkerColor(color)
+        raw.SetLineColor(color)
         
+    def plotOnePower(self, wl=1, gPad=None, opt='', color=1):
+        if gPad is None:
+            self.PWCanvas=ROOT.TCanvas('PowerCan_%s'%self.LidarRun.RunNumber,\
+                                         'Power for run %s'%self.LidarRun.RunNumber,\
+                                         30,50,850,650)
+        else:
+            gPad.cd()
+        pw=self.getPower(wl)
+        pw.Draw(opt)
+        pw.SetMarkerColor(color)
+        pw.SetLineColor(color)
 
     def plotOneLnPower(self, wl=1, gPad=None, opt='', color=1):
         if gPad is None:
@@ -258,10 +299,10 @@ class pLidarRunPlotter(object):
                                          30,50,850,650)
         else:
             gPad.cd()
-        pw=self.getLnPower(wl)
-        pw.Draw(opt)
-        pw.SetMarkerColor(color)
-        pw.SetLineColor(color)
+        lnpw=self.getLnPower(wl)
+        lnpw.Draw(opt)
+        lnpw.SetMarkerColor(color)
+        lnpw.SetLineColor(color)
 
 
     def plotOneAlpha(self, wl=1, gPad=None, opt='AP', color=1):

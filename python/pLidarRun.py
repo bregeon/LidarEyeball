@@ -60,9 +60,9 @@ class pLidarRun(object):
         cont=open(self.FileName,'r').readlines()
         self.RunNumber=int(self.FileName.split('_')[1])
         self.DateTime=datetime.strptime(cont[0].strip(),'%a %b %d %H:%M:%S %Y')
-        print '-'*80
-        print 'Reading file %s, Date %s, Run %s'%\
-              (self.FileName,self.DateTime,self.RunNumber)
+        logger.info('-'*80)
+        logger.info('Reading file %s, Date %s, Run %s'%\
+              (self.FileName,self.DateTime,self.RunNumber))
         self.NPoints=len(cont[1:])
         self.RawData=numpy.ndarray((self.NPoints,3),'d')
         self.RawAltitude=numpy.ndarray((self.NPoints),'d')
@@ -126,7 +126,7 @@ class pLidarRun(object):
     ## @param bkgmax
     #  maximum altitute to consider for background estimation   
     def reduce(self,altmin=0.800, altmax=10., bkgmin=20., bkgmax=25.):
-        print 'Subtract background and produce reduced data and power arrays'
+        logger.info('Subtract background and produce reduced data and power arrays')
         self.AltMin=altmin
         self.AltMax=altmax
         self.BkgMin=bkgmin
@@ -145,7 +145,7 @@ class pLidarRun(object):
         self.NData=self.Alt.size
         
     def lnPower(self):
-        print 'Calculate Ln of Power'
+        logger.info('Calculate Ln of Power')
         self.LnPW1=numpy.ndarray((self.NData),'d')
         self.LnPW2=numpy.ndarray((self.NData),'d')
         for i in xrange(self.NData):
@@ -163,7 +163,7 @@ class pLidarRun(object):
         self.gLnPower.Fit('pol1','','',5,10)
 
     def binData(self, nBins=50):
-        print 'Bin data'
+        logger.info('Bin data')
         self.NBins=nBins
         # get bin width in Log scale
         self.BinLnAltWidth=(math.log(self.AltMax)-math.log(self.AltMin))/self.NBins
@@ -212,7 +212,7 @@ class pLidarRun(object):
                 sumlnpw2=lnpw2
                 nPoints=1
                 kAlt+=1        
-        print 'Binned data ready.'              
+        logger.info('Binned data ready.')
 
     ####################################
     ## @brief Klett implementation
@@ -232,7 +232,7 @@ class pLidarRun(object):
     #  as in beta=l*alpha^k
       
     def run_Klett(self, r0=10, alpha0wl1=0.0038, alpha0wl2=0.018, k=1, l=1):
-        print 'Klett: starting inversion'
+        logger.info('Klett: starting inversion')
         # save parameters
         self.Klett_r0=r0
         self.Klett_alpha0wl1=alpha0wl1
@@ -266,7 +266,7 @@ class pLidarRun(object):
 
         # Truncate BinsAltCenter
         #self.BinsAltCenter= self.BinsAltCenter[:-1]   
-        print 'Klett: inversion done.'
+        logger.info('Klett: inversion done.')
 
 
     ####################################
@@ -320,10 +320,10 @@ class pLidarRun(object):
         return stringDict
         
 if __name__ == '__main__':
-    DATA_DIR='/home/bregeon/CTA/Lidar/alldata'
+    DATA_DIR='/home/bregeon/Hess/Lidar/alldata'
 #    r=pLidarRun(os.path.join(DATA_DIR,'run_065160_Lidar_001.root.txt'), nBins=100)
 
-    r=pLidarRun(os.path.join(HESS_DATA_DIR,'run067217/run_067217_Lidar_001.root'), nBins=100)
+    r=pLidarRun(os.path.join(HESS_DATA_DIR,'run067217/run_067219_Lidar_001.root'), nBins=100)
     
     #r.simplePlot()
     #r.binLnPower(10)
